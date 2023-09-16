@@ -33,6 +33,11 @@ CHOICE_CHECK_SUFFIX = "96e824e9"
 
 
 def add_choice_constraint(field, model, name):
+    """
+    Add a CheckConstraints to the model for which we have a field, which should have choices
+    with the given field name. If the field has no .choices, it will not add a constraint.
+    If the field is NULLable, it will include this in the check.
+    """
     if field.choices is not None:
         constraint_name = f"{field.column}_valid_choices_{CHOICE_CHECK_SUFFIX}"
         if not any(con.name == constraint_name for con in model._meta.constraints):
@@ -48,14 +53,22 @@ def add_choice_constraint(field, model, name):
 
 
 class ChoicesConstraintMixin:
-    def __init__(self, *args, ensure_choices=True, **kwargs):
+    """
+    A mixin that can be added to an (arbitrary) model field that will then add a CheckConstraint
+    if that field has .choices. It will also, by default, check that choices have been given.
+    This check can be disabled by passing check_choices=False. We can omit enforcing choices
+    by passing ensure_choices=False.
+    """
+    def __init__(self, *args, check_choices=True, ensure_choices=True, **kwargs):
         super().__init__(*args, **kwargs)
-        if ensure_choices and self.choices is None:
+        self.ensure_choices = ensure_choices
+        if check_choices and self.choices is None:
             raise ValueError(f"You need to pass choices for the {type(self)} field")
 
     def contribute_to_class(self, cls, name, *args, **kwargs):
         super().contribute_to_class(cls, name, *args, **kwargs)
-        add_choice_constraint(self, cls, name)
+        if self.ensure_choices:
+            add_choice_constraint(self, cls, name)
 
 
 class ChoiceBigIntegerField(ChoicesConstraintMixin, BigIntegerField):
