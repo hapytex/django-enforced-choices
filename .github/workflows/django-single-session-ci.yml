@@ -1,0 +1,166 @@
+name: django-single-session CI
+on: push
+jobs:
+  black:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: psf/black@stable
+        with:
+          options: "--check"
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.7', '3.8', '3.9', '3.10']
+    steps:
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    - run: sudo apt install python3-django
+    - run: pip install Django
+    - run: django-admin startproject testproject
+    - name: checkout code
+      uses: actions/checkout@v2.3.1
+      with:
+        path: 'testproject_temp'
+    - run: "mv testproject_temp/* testproject/"
+    - run: pip install -r requirements.txt
+      working-directory: 'testproject'
+    - run: python manage.py test --settings=docs.source.settings
+      working-directory: 'testproject'
+
+  no-makemigrations:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.7', '3.8', '3.9', '3.10']
+    steps:
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    - run: sudo apt install python3-django
+    - run: pip install Django
+    - run: django-admin startproject testproject
+    - name: checkout code
+      uses: actions/checkout@v2.3.1
+      with:
+        path: 'testproject_temp'
+    - run: "mv testproject_temp/* testproject/"
+    - run: pip install -r requirements.txt
+      working-directory: 'testproject'
+    - run: python manage.py makemigrations --dry-run --settings=docs.source.settings
+      working-directory: 'testproject'
+      shell: bash
+
+  no-makemessages:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.7', '3.8', '3.9', '3.10']
+        locale: [nl]
+    steps:
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    - run: sudo apt install gettext python3-django
+    - run: pip install Django
+    - run: django-admin startproject testproject
+    - name: checkout code
+      uses: actions/checkout@v2.3.1
+      with:
+        path: 'testproject_temp'
+    - run: |
+        shopt -s dotglob
+        mv testproject_temp/* testproject/
+    - run: pip install -r requirements.txt
+      working-directory: 'testproject'
+    - run: python manage.py makemessages --locale=${{ matrix.locale }} --settings=docs.source.settings
+      working-directory: 'testproject'
+    - run: git diff --ignore-matching-lines='^"POT-Creation-Date:' --exit-code
+      working-directory: 'testproject'
+
+  no-compilemessages:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.7', '3.8', '3.9', '3.10']
+    steps:
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    - run: sudo apt install gettext python3-django
+    - run: pip install Django
+    - run: django-admin startproject testproject
+    - name: checkout code
+      uses: actions/checkout@v2.3.1
+      with:
+        path: 'testproject_temp'
+    - run: |
+        shopt -s dotglob
+        mv testproject_temp/* testproject/
+    - run: pip install -r requirements.txt
+      working-directory: 'testproject'
+    - run: python manage.py compilemessages --settings=docs.source.settings
+      working-directory: 'testproject'
+    - run: git diff --exit-code
+      working-directory: 'testproject'
+
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.7', '3.8', '3.9', '3.10']
+    steps:
+    - name: checkout code
+      uses: actions/checkout@v2.3.1
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    - run: |
+        pip install setuptools>=38.6.0 twine>=1.11.0 wheel>=0.31.0 setuptools_scm>=6.2
+        python -m setuptools_scm
+        python setup.py sdist bdist_wheel
+
+  test-publish:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')
+    needs: [black, build, test, no-makemigrations, no-makemessages, no-compilemessages]
+    steps:
+    - name: checkout code
+      uses: actions/checkout@v2.3.1
+    - name: Set up Python
+      uses: actions/setup-python@v4
+    - run: |
+        pip install setuptools>=38.6.0 twine>=1.11.0 wheel>=0.31.0 setuptools_scm>=6.2
+        python -m setuptools_scm
+        python setup.py sdist bdist_wheel
+    - name: Publish package
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        password: ${{ secrets.TEST_PYPI_TOKEN }}
+        repository_url: https://test.pypi.org/legacy/
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: [test-publish]
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+    - name: checkout code
+      uses: actions/checkout@v2.3.1
+    - name: Set up Python
+      uses: actions/setup-python@v4
+    - run: |
+        pip install setuptools>=38.6.0 twine>=1.11.0 wheel>=0.31.0 setuptools_scm>=6.2
+        python -m setuptools_scm
+        python setup.py sdist bdist_wheel
+    - name: Publish package
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        password: ${{ secrets.PYPI_TOKEN }}
