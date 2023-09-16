@@ -1,4 +1,16 @@
-from django.contrib.postgres.fields import ArrayField, BigIntegerRangeField, CICharField, CIEmailField, CITextField, DateRangeField, DateTimeRangeField, DecimalRangeField, HStoreField, IntegerRangeField, RangeField
+from django.contrib.postgres.fields import (
+    ArrayField,
+    BigIntegerRangeField,
+    CICharField,
+    CIEmailField,
+    CITextField,
+    DateRangeField,
+    DateTimeRangeField,
+    DecimalRangeField,
+    HStoreField,
+    IntegerRangeField,
+    RangeField,
+)
 from django_enforce_choices.fields import ChoicesConstraintMixin
 
 

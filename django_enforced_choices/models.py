@@ -5,11 +5,15 @@ from django.db.models.base import ModelBase
 
 from .fields import add_choice_constraint
 
+
 class ChoicesConstraintModelMetaMixin(ModelBase):
     def _prepare(cls, *args, **kwargs):
+        to_exclude = getattr(cls, 'exclude_choice_check_fields', ()) or ()
         super()._prepare(*args, **kwargs)
         for field in cls._meta.fields:
-            add_choice_constraint(field, cls, field.name)
+            if field.name not in to_exclude:
+                add_choice_constraint(field, cls, field.name)
+
 
 class ChoicesConstraintModelMixin(metaclass=ChoicesConstraintModelMetaMixin):
-    pass
+    exclude_choice_check_fields = ()
