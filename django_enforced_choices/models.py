@@ -13,7 +13,3 @@ class ChoicesConstraintModelMetaMixin(ModelBase):
 
 class ChoicesConstraintModelMixin(metaclass=ChoicesConstraintModelMetaMixin):
     pass
-
-
-class MyCustomModel(ChoicesConstraintModelMixin, models.Model):
-    type = models.CharField(choices=[('a', 'active'), ('q', 'passive')], max_length=1)
