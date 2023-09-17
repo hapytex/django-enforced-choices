@@ -1,0 +1,14 @@
+[project]
+name = "django-enforced-choices"
+version = "0.1"
+authors = [{name = "Willem Van Onsem", email = "yourfriends@hapytex.eu"}]
+
+[build-system]
+requires = ['setuptools>=45', 'wheel', 'setuptools_scm[toml]>=6.2']
+build-backend = 'setuptools.build_meta:__legacy__'
+
+[tool.setuptools_scm]
+write_to = "_version.py"
+
+[tool.black]
+extend-exclude = '(.*/migrations/.*|setup)\.py'
