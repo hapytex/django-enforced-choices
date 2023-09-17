@@ -59,6 +59,7 @@ class ChoicesConstraintMixin:
     This check can be disabled by passing check_choices=False. We can omit enforcing choices
     by passing ensure_choices=False.
     """
+
     def __init__(self, *args, check_choices=True, ensure_choices=True, **kwargs):
         super().__init__(*args, **kwargs)
         self.ensure_choices = ensure_choices

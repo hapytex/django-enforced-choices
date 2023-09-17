@@ -11,12 +11,13 @@ class ChoicesConstraintModelMetaMixin(ModelBase):
     A meta-class with the logic in the _prepare method to inspect the fields, and
     add CheckConstraints for the fields that have choices.
     """
+
     def _prepare(cls, *args, **kwargs):
         """
         Override the _prepare method to also add CheckConstraints for the corresponding
         fields.
         """
-        to_exclude = getattr(cls, 'exclude_choice_check_fields', ()) or ()
+        to_exclude = getattr(cls, "exclude_choice_check_fields", ()) or ()
         super()._prepare(*args, **kwargs)
         for field in cls._meta.fields:
             if field.name not in to_exclude:
@@ -29,4 +30,5 @@ class ChoicesConstraintModelMixin(metaclass=ChoicesConstraintModelMetaMixin):
     from the ChoicesConstraintsModelMetaMixin, a subclass of ModelBase, which
     has some extra _prepare logic.
     """
+
     exclude_choice_check_fields = ()
