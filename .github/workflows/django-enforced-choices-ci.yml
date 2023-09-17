@@ -1,4 +1,4 @@
-name: django-single-session CI
+name: django-enforced-choices CI
 on: push
 jobs:
   black:
