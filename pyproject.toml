@@ -1,6 +1,6 @@
 [project]
 name = "django-enforced-choices"
-version = "0.1"
+version = "0.1.2"
 authors = [{name = "Willem Van Onsem", email = "yourfriends@hapytex.eu"}]
 
 [build-system]
