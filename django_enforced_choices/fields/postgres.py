@@ -11,7 +11,7 @@ from django.contrib.postgres.fields import (
     IntegerRangeField,
     RangeField,
 )
-from django_enforce_choices.fields import ChoicesConstraintMixin
+from django_enforce_choices.fields import ChoicesConstraintMixin, RangeConstraintMixin
 
 
 class ChoiceArrayField(ChoicesConstraintMixin, ArrayField):
@@ -55,4 +55,48 @@ class ChoiceIntegerRangeField(ChoicesConstraintMixin, IntegerRangeField):
 
 
 class ChoiceRangeField(ChoicesConstraintMixin, RangeField):
+    pass
+
+
+class RangeArrayField(RangeConstraintMixin, ArrayField):
+    pass
+
+
+class RangeBigIntegerRangeField(RangeConstraintMixin, BigIntegerRangeField):
+    pass
+
+
+class RangeCICharField(RangeConstraintMixin, CICharField):
+    pass
+
+
+class RangeCIEmailField(RangeConstraintMixin, CIEmailField):
+    pass
+
+
+class RangeCITextField(RangeConstraintMixin, CITextField):
+    pass
+
+
+class RangeDateRangeField(RangeConstraintMixin, DateRangeField):
+    pass
+
+
+class RangeDateTimeRangeField(RangeConstraintMixin, DateTimeRangeField):
+    pass
+
+
+class RangeDecimalRangeField(RangeConstraintMixin, DecimalRangeField):
+    pass
+
+
+class RangeHStoreField(RangeConstraintMixin, HStoreField):
+    pass
+
+
+class RangeIntegerRangeField(RangeConstraintMixin, IntegerRangeField):
+    pass
+
+
+class RangeRangeField(RangeConstraintMixin, RangeField):
     pass
