@@ -30,7 +30,15 @@ But regardless, people often use the former model. This is good if we work with 
 
 ## What does this package provide?
 
-This package provides a `ChoicesConstraintModelMixin` mixin to mix into models. This will look for the model fields, and if there are choices it will add `CheckConstraint`s for these fields. One can exclude certain fields that have choices by adding the corresponding names in a class attribute named `exclude_choice_check_fields`, which is by default empty.
+This package provides two mixins:
+
+ - `ChoicesConstraintModelMixin` which checks on the `choices=` parameter of the fields of that model, and based on that, creates a constraint to enforce the choices at the datbase side; and
+ - `RangeConstraintModelMixin`, which checks the `validators=` parameter of the fields of that model, and based on that, creates a constraint to enforce that at the database side.
+
+You can combine the mixins that are defined with `FullChoicesConstraintModelMixin`, it is probably advisable to use `FullChoicesConstraintModelMixin` over the mixins defined above, since as more validators are enforced ,
+it will automatically add more constraints for these models, whereas `ChoicesConstraintModelMixin` for example, will only limit itself to choices.
+
+One can exclude certain fields with the `exclude_choice_check_fields` and `exclude_range_check_fields` attributes that you can alter in the model. These need to provide a collection of strings that contain the *name* of the field.
 
 Another option is to import the correspond field from the `django_enforced_choices.fields` module, or `django_enforced_choices.fields.postgres` for PostgreSQL-specific fields. This will, by default, also check if the fields have choices, but we do *not* recommend to use these, since this means the field has for example as type `ChoiceCharField`, and certain Django functionalities (and packages) sometimes check full type equality to determine a widget, not through an `instanceof`. This thus means that certain functionalities might no longer work as intended.
 
@@ -39,14 +47,18 @@ Another option is to import the correspond field from the `django_enforced_choic
 One can import the `ChoicesConstraintModelMixin` and mix it into a model, like:
 
 ```
-from django_enforced_choices.models import ChoicesConstraintModelMixin
+from django.core.validators import MaxValuevalidator, MinValueValidator 
+from django_enforced_choices.models import FullChoicesConstraintModelMixin
 
-class Movie(ChoicesConstraintModelMixin, models.Model):
+class Movie(FullChoicesConstraintModelMixin, models.Model):
     genre = models.CharField(max_length=1, choices=[('d', 'drama'), ('h', 'horror')])
+    year = models.IntegerField(validators=[MinValueValidator(1888)])
 ```
 
-this will then add `CheckConstraint`s to the model to enforce that `genre` only can contain `'d'` and `'h'` at the database side.
+this will then add `CheckConstraint`s to the model to enforce that `genre` only can contain `'d'` and `'h'` at the database side, and that the `year` is greater than or equal to [1888](https://en.wikipedia.org/wiki/Roundhay_Garden_Scene).
 
 ## How does the package work?
 
-For the fields defined, it will check if the `choices` are defined. If that is the case, it will create a `CheckConstraint` with `fieldname__in` with the keys in the choices. If the field is NULLable, it will also allow `NULL`/`None` to be used.
+For the fields defined, it will check if the `choices` and `validators` are defined.  If that is the case, it will create a `CheckConstraint` with `fieldname__in` with the keys in the choices for choices, and `__range`, `__lte` or `__gte` for ranges depending on what values are picked.
+
+If the field is NULLable, it will also allow `NULL`/`None` to be used.
