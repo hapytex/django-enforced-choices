@@ -3,11 +3,11 @@
 # -- Project information
 
 project = "django-enforced-choices"
-copyright = "2023, Willem Van Onsem"
+copyright = "2023-2024, Willem Van Onsem"
 author = "Willem Van Onsem"
 
-release = "0.1.2"
-version = "0.1.2"
+release = "0.2.0"
+version = "0.2.0"
 
 from os import environ
 from os.path import dirname
